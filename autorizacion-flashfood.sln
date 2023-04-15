@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnviarEventos", "autorizacion-flashfood\EnviarEventos.csproj", "{084853FF-FC23-45ED-A7D8-44EED86B5A7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecibirEventos", "RecibirEventos\RecibirEventos.csproj", "{B934C6AD-1060-47B9-82C2-3269B29061ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{084853FF-FC23-45ED-A7D8-44EED86B5A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{084853FF-FC23-45ED-A7D8-44EED86B5A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{084853FF-FC23-45ED-A7D8-44EED86B5A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{084853FF-FC23-45ED-A7D8-44EED86B5A7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B934C6AD-1060-47B9-82C2-3269B29061ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B934C6AD-1060-47B9-82C2-3269B29061ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B934C6AD-1060-47B9-82C2-3269B29061ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B934C6AD-1060-47B9-82C2-3269B29061ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {045ACEF0-433B-4C60-8427-F3749DC43299}
+	EndGlobalSection
+EndGlobal
