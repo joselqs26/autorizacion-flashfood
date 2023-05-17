@@ -33,12 +33,12 @@ namespace SendingToEventHub
 
 
 
-            string namespaceConnectionString = "Endpoint=sb://eventhub-flashfood.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessPolicy;SharedAccessKey=D7s1PbsGugJeWQaQpiwGJw199QvKqfIcX+AEhFJNPI4=;EntityPath=eventhub-flashfood";
+            string namespaceConnectionString = "Endpoint=sb://eventhub-flash-food.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessPolicy;SharedAccessKey=F15BHDT/eXASYLnB3omw00Li523nmb4CW+AEhDQUIsE=;EntityPath=eventhub-flashfood";
             string eventHubName = "eventhub-flashfood";
 
 
-            string blobConnectionString = "DefaultEndpointsProtocol=https;AccountName=azurestorageflashfood;AccountKey=Q6jixJ+fue/fsGGnVHn4Q2sVqpFM769twe+DyWMnoayFlvpwLjd0QRQKpoBYwbRdUp94Zo0plf20+AStea8meA==;EndpointSuffix=core.windows.net";
-            string containerName = "offsetcontainer";
+            string blobConnectionString = "DefaultEndpointsProtocol=https;AccountName=storageacountflashfood;AccountKey=R//snMT8pKVoyle/2WmtYFG+KJxB2NU4AHkj5LS8nO07CNgWx78k0J+ZlADj7D5AjBdxEN2Y9Ida+AStO6Pxnw==;EndpointSuffix=core.windows.net";
+            string containerName = "blobcontainer-flashfood";
 
 
             BlobContainerClient storageClient = new BlobContainerClient(blobConnectionString, "blobcontainer-flashfood");
@@ -97,7 +97,7 @@ namespace SendingToEventHub
                     // Best practice is to scope the MySqlConnection to a "using" block
                     SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
 
-                    builder.DataSource = "serverdb-flashfood.database.windows.net";
+                    builder.DataSource = "server-db-sql-flashfood.database.windows.net";
                     builder.UserID = "adminServer";
                     builder.Password = "FlashFood123*";
                     builder.InitialCatalog = "sqlDatabase-FlashFood";
@@ -199,7 +199,7 @@ namespace SendingToEventHub
             // of the application, which is best practice when events are being published or read regularly.
             // TODO: Replace the <EVENT_HUB_NAMESPACE> and <HUB_NAME> placeholder values
             EventHubProducerClient producerClient = new EventHubProducerClient(
-                "Endpoint=sb://eventhub-flashfood.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessPolicy;SharedAccessKey=D7s1PbsGugJeWQaQpiwGJw199QvKqfIcX+AEhFJNPI4=;EntityPath=eventhub-flashfood",
+                "Endpoint=sb://eventhub-flash-food.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessPolicy;SharedAccessKey=F15BHDT/eXASYLnB3omw00Li523nmb4CW+AEhDQUIsE=;EntityPath=eventhub-flashfood",
                 "eventhub-flashfood");
 
 
