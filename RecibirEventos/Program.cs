@@ -18,14 +18,18 @@ using System.Data.SqlClient;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-
-
-
+using System.Configuration;
+using System.Data;
 
 namespace SendingToEventHub
 {
     class Program
     {
+
+
+        
+     
+
 
         static async Task Main(string[] args)
         {
@@ -72,6 +76,7 @@ namespace SendingToEventHub
             try
             {
                 var eventoRecibido = JsonSerializer.Deserialize<Evento>(str);
+                //Lo que se hace aca es verificar que tipo de evento es entonces ejecuta el codigo
                 if (eventoRecibido?.type == "login")
                 {
                     string newstr = eventoRecibido.data.Replace("\"", "");
@@ -154,13 +159,92 @@ namespace SendingToEventHub
                             Console.WriteLine(tokenString);
 
                             ProductorDeEventos producerEvent = new ProductorDeEventos();
-                            await producerEvent.sendEventAsync(tokenString);
+                            await producerEvent.sendEventAsync(tokenString, "send_login");
                         }
                         else
                         {
                             Console.WriteLine("Nombre de usuario o contraseña incorrectos.");
                         }
                     }
+                }
+                else if (eventoRecibido?.type == "pedido")
+                {
+                    string newstr = eventoRecibido.data.Replace("\"", "");
+                    byte[] decbuff = Convert.FromBase64String(newstr);
+                    string descodificar = System.Text.Encoding.UTF8.GetString(decbuff);
+
+                    var pedidoRecibido = JsonSerializer.Deserialize<Pedido>(descodificar);
+                    int idMesero = pedidoRecibido.IdMesero;
+                    int idMesa = pedidoRecibido.IdMesa;
+                    List<Producto> pedidos = pedidoRecibido.Pedidos;
+                    int idPedido = 0;
+
+                    // Realizar el procesamiento de los pedidos recibidos
+
+                    await arg.UpdateCheckpointAsync();
+
+                    // Best practice is to scope the MySqlConnection to a "using" block
+                    SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+                    builder.DataSource = "server-db-sql-flashfood.database.windows.net";
+                    builder.UserID = "adminServer";
+                    builder.Password = "FlashFood123*";
+                    builder.InitialCatalog = "sqlDatabase-FlashFood";
+
+                    using (SqlConnection conn = new SqlConnection(builder.ConnectionString))
+                    {
+                        // Connect to the database
+                        conn.Open();
+
+                        SqlCommand cmd = new SqlCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "CrearPedido";
+                        cmd.Parameters.AddWithValue("@idMesero", idMesero);
+                        cmd.Parameters.AddWithValue("@idMesa", idMesa);
+
+                        cmd.Parameters.Add("@idPedido", SqlDbType.Int);
+                        cmd.Parameters["@idPedido"].Direction = ParameterDirection.Output;
+                        
+                            int i = cmd.ExecuteNonQuery();
+                            //Storing the output parameters value in 3 different variables.  
+                            idPedido = Convert.ToInt32(cmd.Parameters["@idPedido"].Value);
+                        // Here we get all three values from database in above three variables.  
+
+                        foreach (Producto p in pedidos)
+                        {
+                            
+                            string insertQuery = "INSERT INTO [dbo].[Ordenes] ([IdProducto],[IdPedido],[Cantidad],[Subtotal],[Estado]) VALUES(@valor1,@valor2,@valor3,0,'En preparación')";
+
+                            using (SqlCommand command = new SqlCommand(insertQuery, conn))
+                            {
+                                // Agrega parámetros a la consulta para los valores a insertar
+                                command.Parameters.AddWithValue("@valor1", p.IdProducto);
+                                command.Parameters.AddWithValue("@valor2", idPedido);
+                                command.Parameters.AddWithValue("@valor3", p.Cantidad);
+
+                                // Ejecuta la consulta
+                                command.ExecuteNonQuery();
+
+                            }
+                        }
+
+                        conn.Close();
+                    }
+
+
+                        ProductorDeEventos producerEvent = new ProductorDeEventos();
+                        await producerEvent.sendEventAsync(idPedido.ToString(),"send_pedido");
+
+
+
+
+
+
+
+
+
+
                 }
             }
             catch (Exception ex)
@@ -173,10 +257,24 @@ namespace SendingToEventHub
         }
     }
 
+    public class Pedido{
+        public int IdMesero { get; set; }
+         public int IdMesa { get; set; }
+        public List<Producto> Pedidos { get; set; }
+}
+
+    public class Producto
+    {
+        public int IdProducto { get; set; }
+        public int Cantidad { get; set; }
+    }
     public class Usuarios
     {
         public string email { get; set; }
         public string password { get; set; }
+        
+
+
 
 
 
@@ -189,9 +287,13 @@ namespace SendingToEventHub
 
 
     }
+
+
+    
+
     public class ProductorDeEventos
     {
-        public async Task sendEventAsync(string tokenString)
+        public async Task sendEventAsync(string stringData, string type)
         {
             int numOfEvents = 1;
 
@@ -209,8 +311,8 @@ namespace SendingToEventHub
             for (int i = 1; i <= numOfEvents; i++)
             {
                 Evento eventoEnviado = new Evento();
-                eventoEnviado.type = "send_login";
-                eventoEnviado.data = tokenString;
+                eventoEnviado.type = type;
+                eventoEnviado.data = stringData;
                 string jsonString = JsonSerializer.Serialize(eventoEnviado);
                 if (!eventBatch.TryAdd(new EventData(Encoding.UTF8.GetBytes(jsonString))))
                 {
@@ -230,7 +332,11 @@ namespace SendingToEventHub
                 await producerClient.DisposeAsync();
             }
         }
+
     }
+
+
+    
 
 }
 
