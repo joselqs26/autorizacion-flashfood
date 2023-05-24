@@ -205,15 +205,15 @@ namespace SendingToEventHub
 
                         cmd.Parameters.Add("@idPedido", SqlDbType.Int);
                         cmd.Parameters["@idPedido"].Direction = ParameterDirection.Output;
-                        
-                            int i = cmd.ExecuteNonQuery();
-                            //Storing the output parameters value in 3 different variables.  
-                            idPedido = Convert.ToInt32(cmd.Parameters["@idPedido"].Value);
+
+                        int i = cmd.ExecuteNonQuery();
+                        //Storing the output parameters value in 3 different variables.  
+                        idPedido = Convert.ToInt32(cmd.Parameters["@idPedido"].Value);
                         // Here we get all three values from database in above three variables.  
 
                         foreach (Producto p in pedidos)
                         {
-                            
+
                             string insertQuery = "INSERT INTO [dbo].[Ordenes] ([IdProducto],[IdPedido],[Cantidad],[Subtotal],[Estado]) VALUES(@valor1,@valor2,@valor3,0,'En preparación')";
 
                             using (SqlCommand command = new SqlCommand(insertQuery, conn))
@@ -233,8 +233,8 @@ namespace SendingToEventHub
                     }
 
 
-                        ProductorDeEventos producerEvent = new ProductorDeEventos();
-                        await producerEvent.sendEventAsync(idPedido.ToString(),"send_pedido");
+                    ProductorDeEventos producerEvent = new ProductorDeEventos();
+                    await producerEvent.sendEventAsync(idPedido.ToString(), "send_pedido");
 
 
 
@@ -245,6 +245,97 @@ namespace SendingToEventHub
 
 
 
+                }
+                else if (eventoRecibido?.type == "preparacion")
+                {
+
+                    string newstr = eventoRecibido.data.Replace("\"", "");
+                    byte[] decbuff = Convert.FromBase64String(newstr);
+                    string descodificar = System.Text.Encoding.UTF8.GetString(decbuff);
+
+                    var idPedidoRecibido = JsonSerializer.Deserialize<int>(descodificar);
+                    int id = idPedidoRecibido;
+
+
+
+
+                    // Realizar el procesamiento de los pedidos recibidos
+
+                    await arg.UpdateCheckpointAsync();
+
+                    // Best practice is to scope the MySqlConnection to a "using" block
+                    SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+                    builder.DataSource = "server-db-sql-flashfood.database.windows.net";
+                    builder.UserID = "adminServer";
+                    builder.Password = "FlashFood123*";
+                    builder.InitialCatalog = "sqlDatabase-FlashFood";
+
+                    using (SqlConnection conn = new SqlConnection(builder.ConnectionString))
+                    {
+                        // Connect to the database
+                        conn.Open();
+
+                        SqlCommand cmd = new SqlCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "ActualizarEstadosCocinero";
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                        //Storing the output parameters value in 3 different variables.  
+
+
+                        conn.Close();
+                    }
+                    ProductorDeEventos producerEvent = new ProductorDeEventos();
+                    await producerEvent.sendEventAsync(id.ToString(), "send_preparacion");
+
+                }
+
+
+
+                else if (eventoRecibido?.type == "pago")
+                {
+
+                    string newstr = eventoRecibido.data.Replace("\"", "");
+                    byte[] decbuff = Convert.FromBase64String(newstr);
+                    string descodificar = System.Text.Encoding.UTF8.GetString(decbuff);
+
+                    var idPedidoRecibido = JsonSerializer.Deserialize<int>(descodificar);
+                    int id = idPedidoRecibido;
+
+
+
+
+                    // Realizar el procesamiento de los pedidos recibidos
+
+                    await arg.UpdateCheckpointAsync();
+                   
+
+                    // Best practice is to scope the MySqlConnection to a "using" block
+                    SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+
+                    builder.DataSource = "server-db-sql-flashfood.database.windows.net";
+                    builder.UserID = "adminServer";
+                    builder.Password = "FlashFood123*";
+                    builder.InitialCatalog = "sqlDatabase-FlashFood";
+
+                    using (SqlConnection conn = new SqlConnection(builder.ConnectionString))
+                    {
+                        // Connect to the database
+                        conn.Open();
+
+                        SqlCommand cmd = new SqlCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "ActualizarEstadosCajero";
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.ExecuteNonQuery();
+                        //Storing the output parameters value in 3 different variables.  
+
+
+                        conn.Close();
+                    }
                 }
             }
             catch (Exception ex)
@@ -261,8 +352,9 @@ namespace SendingToEventHub
         public int IdMesero { get; set; }
          public int IdMesa { get; set; }
         public List<Producto> Pedidos { get; set; }
-}
 
+}
+    
     public class Producto
     {
         public int IdProducto { get; set; }
